@@ -18,6 +18,7 @@ module OpenAPIParser::Schemas
     # @param [OpenAPIParser::SchemaValidator::ResponseValidateOptions] response_validate_options
     def validate(response_body, response_validate_options)
       validate_header(response_body.headers) if response_validate_options.validate_header
+      return true if empty_content?(response_body) && empty_content_defined?
 
       media_type = select_media_type(response_body.content_type)
       unless media_type
@@ -28,6 +29,15 @@ module OpenAPIParser::Schemas
 
       options = ::OpenAPIParser::SchemaValidator::Options.new # response validator not support any options
       media_type.validate_parameter(response_body.response_data, options)
+    end
+
+    # @param [OpenAPIParser::RequestOperation::ValidatableResponseBody] response_body
+    def empty_content?(response_body)
+      response_body.response_data.nil? || response_body.response_data.empty?
+    end
+
+    def empty_content_defined?
+      content.nil? || content.empty?
     end
 
     # select media type by content_type (consider wild card definition)
